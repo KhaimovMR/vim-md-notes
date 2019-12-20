@@ -13,6 +13,30 @@ nmap <silent> <Leader>j :call MdPriorityChange('%', -1, 1, 1)<cr>
 " {{{ FOLDING
 
 
+function! MarkdownCheckListItems()
+  redir => markdown_check_replaces
+  silent! exec 's/\[ \]/[x]/g'
+  redir END
+
+  if ( markdown_check_replaces =~ 'Pattern not found')
+    silent! exec 's/\[x\]/[ ]/g'
+  else
+    let l:initial_line_number = line('.')
+    if (getline(line('.')) !~ '^- \[x\]')
+      return
+    endif
+
+    while (getline(line('.') + 1) !~ '^- \[x\]' && line('.') < line('$'))
+      exec "normal! ddp"
+      exec "sleep 24m"
+    endwhile
+
+    echom "normal! " . l:initial_line_number . "gg"
+    exec "normal! " . l:initial_line_number . "gg"
+  endif
+endfunction
+
+
 function! MoveFile(oldspec, newspec)
   let old = expand(a:oldspec)
   let new = expand(a:newspec)
@@ -59,7 +83,7 @@ function! MdPriorityChange(file, step, current_buffer, swap_priorities)
   let file_name = expand(a:file)
   let separator = '__'
 
-  if (expand('%:p') !~ 'Dropbox\/markdown')
+  if (expand('%:p') !~ 'gdrive\/md-notes')
     echo "Not a markdown note file..."
     return 0
   endif
