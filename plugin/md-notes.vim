@@ -17,21 +17,34 @@ function! MarkdownCheckListItems()
   redir => markdown_check_replaces
   silent! exec 's/\[ \]/[x]/g'
   redir END
+  let l:indentation = ''
 
   if ( markdown_check_replaces =~ 'Pattern not found')
     silent! exec 's/\[x\]/[ ]/g'
   else
     let l:initial_line_number = line('.')
-    if (getline(line('.')) !~ '^- \[x\]')
+    if (getline(line('.')) !~ '^\s*- \[x\]')
       return
     endif
+    let l:indentation = matchstr(getline(line('.')), '^\s*-')
+    let l:indentation = substitute(l:indentation, '-$', '', 'g')
 
-    while (getline(line('.') + 1) !~ '^- \[x\]' && line('.') < line('$'))
+    while (line('.') < line('$'))
+      if (getline(line('.') + 1) =~ '^'.l:indentation.'- \[x\]')
+        return
+      endif
+
+      let l:next_indentation = matchstr(getline(line('.') + 1), '^\s*-')
+      let l:next_indentation = substitute(l:next_indentation, '-$', '', 'g')
+
+      if (strlen(l:next_indentation) < strlen(l:indentation))
+        return
+      endif
+
       exec "normal! ddp"
       exec "sleep 24m"
     endwhile
 
-    echom "normal! " . l:initial_line_number . "gg"
     exec "normal! " . l:initial_line_number . "gg"
   endif
 endfunction
