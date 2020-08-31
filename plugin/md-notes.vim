@@ -64,11 +64,9 @@ function! MoveFile(oldspec, newspec)
     exec ':save ' . new
     silent! exec ':bd! ' . old
     silent! exec '!rm -f ' . old
-    silent! exec ':b ' . old
+    silent! exec ':b ' . new
   else
-    "silent! exec ':bd! ' . old
     silent! exec '!mv ' . old . ' ' . new
-    "silent! exec ':e ' . new
   endif
 
 
@@ -132,7 +130,6 @@ function! MdPriorityChange(file, step, current_buffer, swap_priorities)
   let new_file_name = new_priority_fmtd . separator . file_name_parts[1]
   let priority_is_busy = systemlist('/bin/ls -1q ' . $PWD . '/' . new_priority_fmtd . separator . '*')
   call MoveFile(file_name, new_file_name)
-  "silent! exec ':bd! ' . new_file_name
   let existent_priority_file = substitute(priority_is_busy[0], $PWD . '/' , '', ' g')
 
   if (priority_is_busy[0] !~ 'No such file or directory')
