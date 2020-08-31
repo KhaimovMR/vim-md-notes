@@ -5,6 +5,7 @@ nmap <silent> <Leader>mda :call MdArchiveNote('%')<cr>
 nmap <silent> <Leader>mdd :call MdDeleteNote('%')<cr>
 nmap <silent> <Leader>k :call MdPriorityChange('%', 1, 1, 1)<cr>
 nmap <silent> <Leader>j :call MdPriorityChange('%', -1, 1, 1)<cr>
+nmap <silent> <Leader>p :call MdPriorityChangeSpecific()<cr>
 
 
 " }}}
@@ -169,6 +170,60 @@ function! MyNewBufferEvent(file)
 
   call MdPriorityChange(fnamemodify(expand(a:file), ':t'), 0, 1, 0)
   silent! exec ':w ' . a:file
+endfunction
+
+
+function! GetInputNumber(msg)
+  return str2nr(nr2char(input(a:msg)))
+endfunction
+
+
+function! MdPriorityChangeSpecific()
+  let file_name = expand('%')
+  let separator = '__'
+
+  if (expand('%:p') !~ 'gdrive\/md-notes')
+    echo "Not a markdown note file..."
+    return 0
+  endif
+
+  let file_name_parts = split(file_name, separator)
+
+  if (len(file_name_parts) < 2)
+    call insert(file_name_parts, '00', 0)
+  endif
+
+  let l:current_priority = str2nr(file_name_parts[0])
+  let l:wanted_priority = GetInputNumber("Input the new priority: ")
+
+  if (l:wanted_priority - l:current_priority == 0 )
+    echo "This note is already of chosen priority!"
+    return 0
+  endif
+
+  if (l:wanted_priority - l:current_priority > 0 )
+    let l:step = 1
+  else
+    let l:step = -1
+  endif
+
+  let l:new_priority = l:current_priority + l:step
+
+  while l:new_priority > l:wanted_priority
+    let file_name = expand('%')
+    let separator = '__'
+
+    let file_name_parts = split(file_name, separator)
+
+    if (len(file_name_parts) < 2)
+      call insert(file_name_parts, '00', 0)
+    endif
+
+    let l:current_priority = str2nr(file_name_parts[0])
+    let l:new_priority = l:current_priority + l:step
+    call MdPriorityChange('%', l:step, 1, 1)
+  endwhile
+
 endfunction
 
 
